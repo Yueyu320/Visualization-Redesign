@@ -1,0 +1,184 @@
+---
+title: "Visualization Redesign"
+output:
+  html_document: default
+---
+
+## Setup - Load packages
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+```
+
+## Task 1 - Recreation
+
+```{r data}
+data_2015 <- tibble(Year = c(rep(2015)), 
+       State = c("Pennsylvania", 
+                 "New Jersey",
+                 "New York",
+                 "Massachusetts",
+                 "Connecticut",
+                 "Wisconsin",
+                 "Minnesota",
+                 "Maryland",
+                 "Virginia",
+                 "Maine",
+                 "Rhode Island",
+                 "Vermont",
+                 "New Hampshire",
+                 "Delaware",
+                 "lowa",
+                 "Remaining States + DC"), 
+       Value = c(9048, 
+                 4855, 
+                 4314,
+                 4224,
+                 2541,
+                 1894,
+                 1805,
+                 1728,
+                 1539,
+                 1201,
+                 904,
+                 710,
+                 529,
+                 435,
+                 318,
+                 2024))
+
+data_2016 <- tibble(Year = rep(2016), 
+                    State = c("Pennsylvania", 
+                              "New Jersey", 
+                              "New York", 
+                              "Wisconsin", 
+                              "Minnesota", 
+                              "Maryland", 
+                              "Connecticut", 
+                              "Maine", 
+                              "Virginia", 
+                              "Rhode Island", 
+                              "New Hampshire", 
+                              "Vermont", 
+                              "Delaware", 
+                              "West Virginia", 
+                              "North Carolina", 
+                              "Remaining States + DC"), 
+                    Value = c(2181, 11443, 4350, 3882, 2295, 2126, 1866, 1748, 
+                              1487, 1350, 903, 891, 761, 506, 368, 272))
+
+data_2017 <- tibble(Year=rep(2017), 
+    State = c("Pennsylvania",
+      "New York",
+      "New Jersey",
+      "Wisconsin",
+      "Minnesota",
+      "Connecticut",
+      "Maryland",
+      "Maine",
+      "Virginia",
+      "New Hampshire",
+      "Vermont",
+      "Rhode Island",
+      "West Virginia",
+      "Delaware",
+      "North Carolina",
+      "Remaining States + DC"), 
+    Value = c(11900,
+              5155,
+              5092,
+              3000,
+              2318,
+              2051,
+              1891,
+              1850,
+              1657,
+              1381,
+              1092,
+              1132,
+              648,
+              608,
+              295,
+              2673))
+data_2018  <- tibble(Year=rep(2018), 
+  State=c("Pennsylvania",
+      "New York",
+      "New Jersey",
+      "Wisconsin",
+      "Minnesota",
+      "Connecticut",
+      "Maryland",
+      "Maine",
+      "Virginia",
+      "New Hampshire",
+      "Vermont",
+      "Rhode Island",
+      "West Virginia",
+      "Delaware",
+      "Ohio",
+      "Remaining States + DC"),
+  Value = c(10208, 3638, 4000, 1869, 1541, 
+          1859, 1382, 1405, 1139, 1428, 576, 1111, 671, 520, 293, 2026) )
+data <- rbind(data_2015, data_2016, data_2017, data_2018)
+data <- data %>% 
+  group_by(Year) %>% 
+  mutate(perc = Value / sum(Value))
+head(data)
+```
+## Task 1 - Recreation
+```{r pie_charts, out.width = "100%", fig.asp = 0.7, dpi = 500}
+ggplot(data, aes(x="", y=perc, fill=State)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  scale_fill_viridis_d() +
+  facet_wrap(~Year, ncol = 2) +
+  coord_polar("y", start=0) +
+  # theme_void() + # remove background, grid, numeric labels
+  labs(title = "Lyme Disease Associate Lyme Disease Analysis",
+       subtitle = "U.S. Reported Lyme Disease Cases Featuring Top 15 States",
+       caption = 
+       "Total cases: 38,069(2015), 36,429(2016), 42,743(2017), 33,666(2018)\nSource data compiled from CDC pub. data(MMWR)") +
+  theme(legend.key.size = unit(1, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title = element_text(size=15),
+        legend.text = element_text(size=15),
+        plot.title = element_text(hjust = 0.5, size = 30),
+        plot.subtitle = element_text(hjust = 0.5, size = 20),
+        plot.caption = element_text(hjust = 0, size = 20),
+        strip.text.x = element_text(size = 20),
+        axis.text = element_text(size = 15),
+        axis.title = element_text(size = 20)
+        )
+```
+
+## Task 2 - Redesign
+We are trying to illustrate the variation of the risk of lyme disease in Connecticut and its neighboring states over years by plotting percentage of lyme diseases cases for these states over years 2015, 2016, 2017 and 2018. We connect the points with lines, so one could easily identify the magnitudes of variation over time and compare between them. We assign different colors to points of different states, so one could easily distinguish points of different states. We use time series as visualization because it not only help to identify the pattern of risk of lyme disease, but also help to predict future risk.
+
+```{r redesign, out.width = "100%", fig.asp = 0.7, dpi = 500}
+CT <- data %>% filter(State == "Connecticut" | 
+                        State == "New Jersey" |
+                        State == "Rhode Island" |
+                        State == "Massachusetts" |
+                        State == "New York")
+ggplot(CT, aes(x=Year, y=perc, color=State, group=State)) + 
+  geom_point() + 
+  geom_line() +
+  scale_color_manual(breaks = c("Connecticut", "Massachusetts", 
+                                "New York", "Rhode Island", "New Jersey"),
+                        values = c("black", "blue", "red", "yellow", "green")) +
+  labs(title = "Lyme Disease Percentage for Connecticut and Neighboring States",
+       y = "Percentage",
+       caption = 
+       "Total cases: 38,069(2015), 36,429(2016), 42,743(2017), 33,666(2018)\nSource data compiled from CDC pub. data(MMWR)") +
+  theme(legend.key.size = unit(1, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title = element_text(size=15),
+        legend.text = element_text(size=15),
+        plot.title = element_text(hjust = 0.5, size = 30),
+        plot.caption = element_text(hjust = 0, size = 20),
+        strip.text.x = element_text(size = 20),
+        axis.text = element_text(size = 15),
+        axis.title = element_text(size = 20)
+        )
+```
